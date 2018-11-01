@@ -3,7 +3,11 @@ import os
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.svm import SVC
+from sklearn.naive_bayes import MultinomialNB
 
 DATA_PATH = '.\\data'
 
@@ -40,20 +44,21 @@ def process_comment(comment, gram=2):
     stemmer = PorterStemmer()
     words = [stemmer.stem(word) for word in words]
 
-    # n-gram
-    if gram > 1:
-        w = []
-        for i in range(len(words) - gram + 1):
-            w += [' '.join(words[i:i+gram])]
-        words = w
-        
-    return words
+    return ' '.join(words)
 
 def process_content(data):
-    data.apply(lambda row : process_comment(row))
+    return data.apply(lambda row : process_comment(row))
 
 df = read_data(DATA_PATH)
-X = df['CONTENT']
+content = process_content(df['CONTENT'])
 y = df['CLASS']
 
-process_content(X)
+vectorizer = TfidfVectorizer('english')
+X = vectorizer.fit_transform(content)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=8)
+
+clf = MultinomialNB(alpha=0.2)
+clf.fit(X_train, y_train)
+print(clf.score(X_test, y_test))
+
