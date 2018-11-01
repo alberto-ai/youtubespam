@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import GridSearchCV
 
 DATA_PATH = '.\\data'
 
@@ -58,7 +59,24 @@ X = vectorizer.fit_transform(content)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=8)
 
-clf = MultinomialNB(alpha=0.2)
+mnb = MultinomialNB()
+mnb_parameters = {
+    'alpha': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    'fit_prior': [True, False]
+}
+
+clf = GridSearchCV(mnb, mnb_parameters, cv=5, n_jobs=-1)
 clf.fit(X_train, y_train)
+print(clf.best_params_)
 print(clf.score(X_test, y_test))
 
+svc = SVC(gamma='scale')
+svc_parameters = {
+    'kernel': ('linear', 'rbf', 'poly', 'sigmoid'),
+    'C': [1.0, 2.0, 3.0, 5.0, 10.0]
+}
+
+clf = GridSearchCV(svc, svc_parameters, cv=5, n_jobs=-1)
+clf.fit(X_train, y_train)
+print(clf.best_params_)
+print(clf.score(X_test, y_test))
